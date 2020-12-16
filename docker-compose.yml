@@ -1,7 +1,7 @@
 version: '3.1'
 
 services:
-  comment_app:
+  post_app:
     container_name: post_app
     build: ./
     ports:
@@ -14,7 +14,7 @@ services:
       - ./logs:/logs
     networks:
       - demo_net
-  comment_db:
+  post_db:
     container_name: post_db
     image: mysql
     command: --default-authentication-plugin=mysql_native_password
