@@ -5,15 +5,21 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
+import com.gurumee.demoboardpostapi.commons.AppProperties;
+import com.gurumee.demoboardpostapi.configs.oauth.OAuthHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -21,23 +27,35 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
-@AutoConfigureMockMvc
+@WebAppConfiguration
+@ActiveProfiles("test")
 class PostControllerTest {
     @Autowired
-    private MockMvc mockMvc;
+    private WebApplicationContext context;
+
+    @Autowired
+    private OAuthHelper helper;
 
     @Autowired
     private PostRepository repository;
 
+    private MockMvc mockMvc;
     private ObjectMapper objectMapper;
 
     @BeforeEach
     public void setUp() {
+        mockMvc = MockMvcBuilders.webAppContextSetup(context)
+                .apply(springSecurity())
+                .alwaysDo(print())
+                .build();
+
         repository.deleteAll();
         IntStream.rangeClosed(1, 5)
                 .mapToObj(i -> Post.builder()
@@ -230,7 +248,63 @@ class PostControllerTest {
         ;
     }
 
-    //create test
+    @Test
+    @DisplayName("POST /api/posts/ test")
+    @WithMockUser(username = "test_user", password = "test_pass", roles = "USER")
+    public void createPostTest() throws Exception {
+        CreatePostRequestDto requestDto = CreatePostRequestDto.builder()
+                .title("create title")
+                .content("create title")
+                .build();
+
+        mockMvc.perform(post("/api/posts/")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestDto))
+                .with(helper.bearerToken())
+        )
+                .andDo(print())
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("id").exists())
+                .andExpect(jsonPath("title").value(requestDto.getTitle()))
+                .andExpect(jsonPath("content").value(requestDto.getContent()))
+                .andExpect(jsonPath("owner_name").value("test_user"))
+                .andExpect(jsonPath("created_at").exists())
+                .andExpect(jsonPath("updated_at").exists())
+        ;
+    }
+
+    @Test
+    @DisplayName("POST /api/posts/ test 실패: accee_token 없을 때")
+    public void createPostTestFailed_has_not_access_token() throws Exception {
+        CreatePostRequestDto requestDto = CreatePostRequestDto.builder()
+                .build();
+
+        mockMvc.perform(post("/api/posts/")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestDto))
+        )
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("error").value("unauthorized"))
+                .andExpect(jsonPath("error_description").value("Full authentication is required to access this resource"))
+        ;
+    }
+
+    @Test
+    @DisplayName("POST /api/posts/ test 실패: 잘못된 값")
+    public void createPostTestFailed_wrong_value() throws Exception {
+        CreatePostRequestDto requestDto = CreatePostRequestDto.builder()
+                .build();
+
+        mockMvc.perform(post("/api/posts/")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestDto))
+                .with(helper.bearerToken())
+        )
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+        ;
+    }
     //update test
     //delete test
 }

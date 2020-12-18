@@ -79,7 +79,10 @@ public class PostController {
         String ownerName = authentication.getName();
 
         if (ownerName == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("not authenticated");
+            ErrorResponseDto errResponseDto = ErrorResponseDto.builder()
+                    .message("Accees token is not exist.")
+                    .build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errResponseDto);
         }
 
         Post newPost = Post.builder()
@@ -124,7 +127,10 @@ public class PostController {
         String ownerName = authentication.getName();
 
         if (ownerName == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("not authenticated: access token is invalidate");
+            ErrorResponseDto errResponseDto = ErrorResponseDto.builder()
+                    .message("Accees token is not exist.")
+                    .build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errResponseDto);
         }
 
         Optional<Post> postOrNull = postRepository.findById(id);
