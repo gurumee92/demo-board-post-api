@@ -14,7 +14,4 @@ public class CreatePostRequestDto {
 
     @NotNull @NotEmpty
     private String content;
-
-    @NotNull @NotEmpty
-    private String ownerName;
 }
