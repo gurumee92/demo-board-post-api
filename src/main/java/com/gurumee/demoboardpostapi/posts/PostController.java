@@ -26,6 +26,7 @@ public class PostController {
     private final PostRepository postRepository;
 
     @ApiOperation(value = "GET /api/posts", notes = "get post list")
+    @Authorization(value = "read")
     @GetMapping
     public ResponseEntity getPosts(@RequestParam(value="username", required = false) String username) {
         List<Post> posts;
@@ -41,6 +42,7 @@ public class PostController {
     }
 
     @ApiOperation(value = "GET /api/posts/search", notes = "search post list")
+    @Authorization(value = "read")
     @GetMapping("/search")
     public ResponseEntity searchPosts(@RequestParam(value="keyword", required = false) String keyword) {
         List<Post> posts;
@@ -97,6 +99,7 @@ public class PostController {
 
 
     @ApiOperation(value = "GET /api/posts/:id", notes = "get a post")
+    @Authorization(value = "read")
     @GetMapping("/{id}")
     public ResponseEntity getPost(@PathVariable("id") Long id) {
         Optional<Post> postOrNull = postRepository.findById(id);

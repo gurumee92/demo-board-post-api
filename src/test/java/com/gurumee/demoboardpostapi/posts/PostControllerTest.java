@@ -100,6 +100,35 @@ class PostControllerTest {
     }
 
     @Test
+    @DisplayName("GET /api/posts with access token test")
+    public void getPostListWithAccessTokenTest() throws Exception {
+        MvcResult mvcResult = mockMvc.perform(get("/api/posts")
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(helper.bearerToken())
+        )
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").exists())
+                .andExpect(jsonPath("$[0].title").exists())
+                .andExpect(jsonPath("$[0].content").exists())
+                .andExpect(jsonPath("$[0].owner_name").exists())
+                .andExpect(jsonPath("$[0].created_at").exists())
+                .andExpect(jsonPath("$[0].updated_at").exists())
+                .andReturn();
+        String res = mvcResult.getResponse().getContentAsString();
+        List<PostResponseDto> dtoList = objectMapper.readValue(res, objectMapper.getTypeFactory().constructCollectionType(List.class, PostResponseDto.class));
+        assertEquals(5, dtoList.size());
+
+        for (int i=0; i<5; i++) {
+            int no = i+1;
+            var dto = dtoList.get(i);
+            assertEquals("test title " + no, dto.getTitle());
+            assertEquals("test content " + no, dto.getContent());
+            assertEquals("test" + no, dto.getOwner_name());
+        }
+    }
+
+    @Test
     @DisplayName("GET /api/posts?username=* test: exist username")
     public void getPostListTest_FindByUsername() throws Exception {
         int no = 4;
