@@ -59,7 +59,7 @@ public class PostController {
                 .id(post.getId())
                 .title(post.getTitle())
                 .content(post.getContent())
-                .ownerName(post.getOwnerName())
+                .owner_name(post.getOwnerName())
                 .created_at(post.getCreatedAt())
                 .updated_at(post.getUpdatedAt())
                 .build();
