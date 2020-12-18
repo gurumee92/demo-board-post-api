@@ -196,4 +196,41 @@ class PostControllerTest {
         List<PostResponseDto> dtoList = objectMapper.readValue(res, objectMapper.getTypeFactory().constructCollectionType(List.class, PostResponseDto.class));
         assertEquals(0, dtoList.size());
     }
+
+    @Test
+    @DisplayName("GET /api/posts/:id test")
+    public void getPostTest() throws Exception {
+        List<Post> all = repository.findAll();
+        Post post = all.get(0);
+        mockMvc.perform(get("/api/posts/"+post.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+        )
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("id").value(post.getId()))
+                .andExpect(jsonPath("title").value(post.getTitle()))
+                .andExpect(jsonPath("content").value(post.getContent()))
+                .andExpect(jsonPath("owner_name").value(post.getOwnerName()))
+                .andExpect(jsonPath("created_at").value(post.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-mm-dd HH:MM:ss"))))
+                .andExpect(jsonPath("updated_at").value(post.getUpdatedAt().format(DateTimeFormatter.ofPattern("yyyy-mm-dd HH:MM:ss"))))
+                ;
+    }
+    @Test
+    @DisplayName("GET /api/posts/:id test 실패: 존재하지 않는 postID")
+    public void getPostTestFailed_not_exist_post_id() throws Exception {
+        List<Post> all = repository.findAll();
+        Post post = all.get(all.size()-1);
+        long id = post.getId() + 1;
+        mockMvc.perform(get("/api/posts/" + id)
+                .contentType(MediaType.APPLICATION_JSON)
+        )
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("message").value("Post ID: " + id + " is not exist."))
+        ;
+    }
+
+    //create test
+    //update test
+    //delete test
 }

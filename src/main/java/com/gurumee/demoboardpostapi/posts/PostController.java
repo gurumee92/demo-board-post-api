@@ -1,5 +1,6 @@
 package com.gurumee.demoboardpostapi.posts;
 
+import com.gurumee.demoboardpostapi.errors.ErrorResponseDto;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.Authorization;
@@ -98,7 +99,10 @@ public class PostController {
         Optional<Post> postOrNull = postRepository.findById(id);
 
         if (postOrNull.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("post is not exist");
+            ErrorResponseDto errResponseDto = ErrorResponseDto.builder()
+                    .message("Post ID: " + id + " is not exist.")
+                    .build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errResponseDto);
         }
 
         Post post = postOrNull.get();
