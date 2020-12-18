@@ -1,4 +1,4 @@
-package com.gurumee.demoboardpostapi.commons;
+package com.gurumee.demoboardpostapi.errors;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;

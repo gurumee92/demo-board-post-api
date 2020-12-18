@@ -125,4 +125,75 @@ class PostControllerTest {
         assertEquals(0, dtoList.size());
     }
 
+    @Test
+    @DisplayName("GET /api/posts/search test")
+    public void getPostListSearchTest() throws Exception {
+        MvcResult mvcResult = mockMvc.perform(get("/api/posts/search")
+                .contentType(MediaType.APPLICATION_JSON)
+        )
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").exists())
+                .andExpect(jsonPath("$[0].title").exists())
+                .andExpect(jsonPath("$[0].content").exists())
+                .andExpect(jsonPath("$[0].owner_name").exists())
+                .andExpect(jsonPath("$[0].created_at").exists())
+                .andExpect(jsonPath("$[0].updated_at").exists())
+                .andReturn();
+        String res = mvcResult.getResponse().getContentAsString();
+        List<PostResponseDto> dtoList = objectMapper.readValue(res, objectMapper.getTypeFactory().constructCollectionType(List.class, PostResponseDto.class));
+        assertEquals(5, dtoList.size());
+
+        for (int i=0; i<5; i++) {
+            int no = i+1;
+            var dto = dtoList.get(i);
+            assertEquals("test title " + no, dto.getTitle());
+            assertEquals("test content " + no, dto.getContent());
+            assertEquals("test" + no, dto.getOwner_name());
+        }
+    }
+
+    @Test
+    @DisplayName("GET /api/posts/search?keyword=* test: exist keyword")
+    public void getPostListSearchTest_FindByKeyword() throws Exception {
+        int no = 4;
+        MvcResult mvcResult;
+        mvcResult = mockMvc.perform(get("/api/posts/search?keyword=nt " + no)
+                .contentType(MediaType.APPLICATION_JSON)
+        )
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").exists())
+                .andExpect(jsonPath("$[0].title").exists())
+                .andExpect(jsonPath("$[0].content").exists())
+                .andExpect(jsonPath("$[0].owner_name").exists())
+                .andExpect(jsonPath("$[0].created_at").exists())
+                .andExpect(jsonPath("$[0].updated_at").exists())
+                .andReturn();
+        String res = mvcResult.getResponse().getContentAsString();
+        List<PostResponseDto> dtoList = objectMapper.readValue(res, objectMapper.getTypeFactory().constructCollectionType(List.class, PostResponseDto.class));
+
+        for (PostResponseDto dto : dtoList) {
+            assertEquals("test title " + no, dto.getTitle());
+            assertEquals("test content " + no, dto.getContent());
+            assertEquals("test" + no, dto.getOwner_name());
+        }
+    }
+
+    @Test
+    @DisplayName("GET /api/posts/search?keyword=* test: empty list")
+    public void getPostListSearchTest_FindByUsername_empty_list() throws Exception {
+        int no = 6;
+        MvcResult mvcResult;
+        mvcResult = mockMvc.perform(get("/api/posts/search?keyword=nt " + no)
+                .contentType(MediaType.APPLICATION_JSON)
+        )
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string("[]"))
+                .andReturn();
+        String res = mvcResult.getResponse().getContentAsString();
+        List<PostResponseDto> dtoList = objectMapper.readValue(res, objectMapper.getTypeFactory().constructCollectionType(List.class, PostResponseDto.class));
+        assertEquals(0, dtoList.size());
+    }
 }
