@@ -1,1 +1,67 @@
 
+my-app:
+  client-id: "client"
+  client-secret: "password"
+  get-token-endpoint-url: "http://localhost:8080/oauth/token"
+  check-token-endpoint-url: "http://localhost:8080/oauth/check_token"
+
+server:
+  tomcat:
+    basedir: ./logs
+    accesslog:
+      enabled: true
+      file-date-format: .yyyy-MM-dd
+      pattern: "%{yyyy-MM-dd HH:mm:ss}t\trequest: %r\tstatus_code: %s\tremote_ip: %a\tlocal_ip: %A\t details: %{User-Agent}i"
+      suffix: .log
+
+---
+server:
+  port: 8081
+
+spring:
+  config:
+    activate:
+      on-profile: local
+
+  jpa:
+    generate-ddl: true
+    show-sql: true
+    database: mysql
+    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+  datasource:
+    url: jdbc:mysql://localhost:3307/test?useSSL=false&characterEncoding=UTF-8
+    username: test
+    password: test
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+---
+my-app:
+  client-id: ${APP_CLIENT_ID}
+  client-secret: ${APP_CLIENT_SECRET}
+  get-token-endpoint-url: ${GET_TOKEN_ENDPOINT_URL}
+  check-token-endpoint-url: ${CHECK_TOKEN_ENDPOINT_URL}
+
+server:
+  tomcat:
+    basedir: ${LOG_DIR}
+    accesslog:
+      enabled: true
+      file-date-format: .yyyy-MM-dd
+      pattern: "%{yyyy-MM-dd HH:mm:ss}t\trequest: %r\tstatus_code: %s\tremote_ip: %a\tlocal_ip: %A\t details: %{User-Agent}i"
+      suffix: .log
+
+spring:
+  config:
+    activate:
+      on-profile: prod
+  jpa:
+    generate-ddl: true
+    show-sql: false
+    database: mysql
+    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+  datasource:
+    initialization-mode: never
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver

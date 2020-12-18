@@ -1,6 +1,8 @@
 my-app:
   client-id: "client"
   client-secret: "password"
+  get-token-endpoint-url: "http://localhost:8080/oauth/token"
+  check-token-endpoint-url: "http://localhost:8080/oauth/check_token"
 
 spring:
   session:
