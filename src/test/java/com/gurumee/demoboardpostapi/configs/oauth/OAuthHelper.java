@@ -29,15 +29,15 @@ public class OAuthHelper {
     private final AuthorizationServerTokenServices tokenServices;
     private final AppProperties appProperties;
 
-    public RequestPostProcessor bearerToken() {
+    public RequestPostProcessor bearerToken(String id) {
         return mockRequest -> {
-            OAuth2AccessToken token = createAccessToken();
+            OAuth2AccessToken token = createAccessToken(id);
             mockRequest.addHeader("Authorization", "Bearer " + token.getValue());
             return mockRequest;
         };
     }
 
-    private OAuth2AccessToken createAccessToken() {
+    private OAuth2AccessToken createAccessToken(String id) {
         String clientId = appProperties.getClientId();
         ClientDetails client = clientDetailsService.loadClientByClientId(clientId);
         Collection<GrantedAuthority> authorities = client.getAuthorities();
@@ -53,7 +53,7 @@ public class OAuthHelper {
         OAuth2Request oAuth2Request = new OAuth2Request(requestParameters, clientId, authorities, approved, scopes,
                 resourceIds, redirectUrl, responseTypes, extensionProperties);
 
-        User userPrincipal = new User("test_user", "test_pass", true, true, true, true, authorities);
+        User userPrincipal = new User("test_user" + id, "test_pass", true, true, true, true, authorities);
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userPrincipal, null, authorities);
         OAuth2Authentication auth = new OAuth2Authentication(oAuth2Request, authenticationToken);
         return tokenServices.createAccessToken(auth);

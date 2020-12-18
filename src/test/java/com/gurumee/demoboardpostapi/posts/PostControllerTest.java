@@ -12,6 +12,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
@@ -19,6 +20,7 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.time.LocalDateTime;
@@ -28,8 +30,7 @@ import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -61,7 +62,7 @@ class PostControllerTest {
                 .mapToObj(i -> Post.builder()
                             .title("test title " + i)
                             .content("test content " + i)
-                            .ownerName("test" + i)
+                            .ownerName("test_user")
                             .build()
                 ).forEach(p -> repository.save(p));
         objectMapper = new ObjectMapper();
@@ -95,7 +96,7 @@ class PostControllerTest {
             var dto = dtoList.get(i);
             assertEquals("test title " + no, dto.getTitle());
             assertEquals("test content " + no, dto.getContent());
-            assertEquals("test" + no, dto.getOwner_name());
+            assertEquals("test_user", dto.getOwner_name());
         }
     }
 
@@ -104,7 +105,7 @@ class PostControllerTest {
     public void getPostListWithAccessTokenTest() throws Exception {
         MvcResult mvcResult = mockMvc.perform(get("/api/posts")
                 .contentType(MediaType.APPLICATION_JSON)
-                .with(helper.bearerToken())
+                .with(helper.bearerToken(""))
         )
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -124,16 +125,15 @@ class PostControllerTest {
             var dto = dtoList.get(i);
             assertEquals("test title " + no, dto.getTitle());
             assertEquals("test content " + no, dto.getContent());
-            assertEquals("test" + no, dto.getOwner_name());
+            assertEquals("test_user", dto.getOwner_name());
         }
     }
 
     @Test
     @DisplayName("GET /api/posts?username=* test: exist username")
     public void getPostListTest_FindByUsername() throws Exception {
-        int no = 4;
         MvcResult mvcResult;
-        mvcResult = mockMvc.perform(get("/api/posts?username=test" + no)
+        mvcResult = mockMvc.perform(get("/api/posts?username=test_user")
                 .contentType(MediaType.APPLICATION_JSON)
         )
                 .andDo(print())
@@ -148,19 +148,20 @@ class PostControllerTest {
         String res = mvcResult.getResponse().getContentAsString();
         List<PostResponseDto> dtoList = objectMapper.readValue(res, objectMapper.getTypeFactory().constructCollectionType(List.class, PostResponseDto.class));
 
-        for (PostResponseDto dto : dtoList) {
+        for (int i=0; i<5; i++) {
+            int no = i+1;
+            var dto = dtoList.get(i);
             assertEquals("test title " + no, dto.getTitle());
             assertEquals("test content " + no, dto.getContent());
-            assertEquals("test" + no, dto.getOwner_name());
+            assertEquals("test_user", dto.getOwner_name());
         }
     }
 
     @Test
     @DisplayName("GET /api/posts?username=* test: empty list")
     public void getPostListTest_FindByUsername_empty_list() throws Exception {
-        int no = 6;
         MvcResult mvcResult;
-        mvcResult = mockMvc.perform(get("/api/posts?username=test" + no)
+        mvcResult = mockMvc.perform(get("/api/posts?username=test")
                 .contentType(MediaType.APPLICATION_JSON)
         )
                 .andDo(print())
@@ -196,7 +197,7 @@ class PostControllerTest {
             var dto = dtoList.get(i);
             assertEquals("test title " + no, dto.getTitle());
             assertEquals("test content " + no, dto.getContent());
-            assertEquals("test" + no, dto.getOwner_name());
+            assertEquals("test_user", dto.getOwner_name());
         }
     }
 
@@ -223,7 +224,7 @@ class PostControllerTest {
         for (PostResponseDto dto : dtoList) {
             assertEquals("test title " + no, dto.getTitle());
             assertEquals("test content " + no, dto.getContent());
-            assertEquals("test" + no, dto.getOwner_name());
+            assertEquals("test_user", dto.getOwner_name());
         }
     }
 
@@ -279,7 +280,6 @@ class PostControllerTest {
 
     @Test
     @DisplayName("POST /api/posts/ test")
-    @WithMockUser(username = "test_user", password = "test_pass", roles = "USER")
     public void createPostTest() throws Exception {
         CreatePostRequestDto requestDto = CreatePostRequestDto.builder()
                 .title("create title")
@@ -289,23 +289,25 @@ class PostControllerTest {
         mockMvc.perform(post("/api/posts/")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(requestDto))
-                .with(helper.bearerToken())
+                .with(helper.bearerToken("0"))
         )
                 .andDo(print())
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("id").exists())
                 .andExpect(jsonPath("title").value(requestDto.getTitle()))
                 .andExpect(jsonPath("content").value(requestDto.getContent()))
-                .andExpect(jsonPath("owner_name").value("test_user"))
+                .andExpect(jsonPath("owner_name").value("test_user0"))
                 .andExpect(jsonPath("created_at").exists())
                 .andExpect(jsonPath("updated_at").exists())
         ;
     }
 
     @Test
-    @DisplayName("POST /api/posts/ test 실패: accee_token 없을 때")
+    @DisplayName("POST /api/posts/ test 실패: access_token 없을 때")
     public void createPostTestFailed_has_not_access_token() throws Exception {
         CreatePostRequestDto requestDto = CreatePostRequestDto.builder()
+                .title("create title")
+                .content("create title")
                 .build();
 
         mockMvc.perform(post("/api/posts/")
@@ -320,6 +322,26 @@ class PostControllerTest {
     }
 
     @Test
+    @DisplayName("POST /api/posts/ test 실패: 잘못된 access_token")
+    public void createPostTestFailed_has_invalid_access_token() throws Exception {
+        CreatePostRequestDto requestDto = CreatePostRequestDto.builder()
+                .title("create title")
+                .content("create title")
+                .build();
+
+        mockMvc.perform(post("/api/posts/")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestDto))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer fakeAccessToken")
+        )
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("error").value("invalid_token"))
+                .andExpect(jsonPath("error_description").value("Invalid access token: fakeAccessToken"))
+        ;
+    }
+
+    @Test
     @DisplayName("POST /api/posts/ test 실패: 잘못된 값")
     public void createPostTestFailed_wrong_value() throws Exception {
         CreatePostRequestDto requestDto = CreatePostRequestDto.builder()
@@ -328,12 +350,136 @@ class PostControllerTest {
         mockMvc.perform(post("/api/posts/")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(requestDto))
-                .with(helper.bearerToken())
+                .with(helper.bearerToken(""))
         )
                 .andDo(print())
                 .andExpect(status().isBadRequest())
         ;
     }
-    //update test
+
+    @Test
+    @DisplayName("PUT /api/posts/:id test")
+    public void updatePostTest() throws Exception {
+        Long id = repository.findAll().get(0).getId();
+        UpdatePostRequestDto requestDto = UpdatePostRequestDto.builder()
+                .title("update title")
+                .content("update title")
+                .build();
+
+        mockMvc.perform(put("/api/posts/"+id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestDto))
+                .with(helper.bearerToken(""))
+        )
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("id").exists())
+                .andExpect(jsonPath("title").value(requestDto.getTitle()))
+                .andExpect(jsonPath("content").value(requestDto.getContent()))
+                .andExpect(jsonPath("owner_name").value("test_user"))
+                .andExpect(jsonPath("created_at").exists())
+                .andExpect(jsonPath("updated_at").exists())
+        ;
+    }
+
+    @Test
+    @DisplayName("PUT /api/posts/:id test 실패: 존재하지 않는 id")
+    public void updatePostTestFailed_not_exist() throws Exception {
+        List<Post> all = repository.findAll();
+        long id = (all.get(all.size()-1).getId() + 1L);
+        UpdatePostRequestDto requestDto = UpdatePostRequestDto.builder()
+                .title("update title")
+                .content("update title")
+                .build();
+
+        mockMvc.perform(put("/api/posts/"+id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestDto))
+                .with(helper.bearerToken("0"))
+        )
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("message").value("Post ID: " + id + " is not exist."))
+        ;
+    }
+
+    @Test
+    @DisplayName("PUT /api/posts/:id test 실패: access_token 없을 때")
+    public void updatePostTestFailed_has_not_access_token() throws Exception {
+        Long id = repository.findAll().get(0).getId();
+        UpdatePostRequestDto requestDto = UpdatePostRequestDto.builder()
+                .title("update title")
+                .content("update title")
+                .build();
+
+        mockMvc.perform(put("/api/posts/"+id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestDto))
+        )
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("error").value("unauthorized"))
+                .andExpect(jsonPath("error_description").value("Full authentication is required to access this resource"))
+        ;
+    }
+
+    @Test
+    @DisplayName("PUT /api/posts/:id test 실패: 잘못된 access_token")
+    public void updatePostTestFailed_has_invalid_access_token() throws Exception {
+        Long id = repository.findAll().get(0).getId();
+        UpdatePostRequestDto requestDto = UpdatePostRequestDto.builder()
+                .title("update title")
+                .content("update title")
+                .build();
+
+        mockMvc.perform(put("/api/posts/"+id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestDto))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer fakeAccessToken")
+        )
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("error").value("invalid_token"))
+                .andExpect(jsonPath("error_description").value("Invalid access token: fakeAccessToken"))
+        ;
+    }
+
+    @Test
+    @DisplayName("PUT /api/posts/:id test 실패: 권한이 없는 access_token")
+    public void updatePostTestFailed_has_unauthorized_access_token() throws Exception {
+        Long id = repository.findAll().get(0).getId();
+        UpdatePostRequestDto requestDto = UpdatePostRequestDto.builder()
+                .title("update title")
+                .content("update title")
+                .build();
+
+        mockMvc.perform(put("/api/posts/"+id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestDto))
+                .with(helper.bearerToken("0"))
+        )
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("message").value("Owner is different."))
+        ;
+    }
+
+    @Test
+    @DisplayName("PUT /api/posts/:id test 실패: 잘못된 값")
+    public void updatePostTestFailed_wrong_value() throws Exception {
+        Long id = repository.findAll().get(0).getId();
+        UpdatePostRequestDto requestDto = UpdatePostRequestDto.builder()
+                .build();
+
+        mockMvc.perform(put("/api/posts/"+id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestDto))
+                .with(helper.bearerToken(""))
+        )
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+        ;
+    }
+
     //delete test
 }
