@@ -52,7 +52,7 @@ public class SwaggerConfig {
 
     private ApiInfo getApiInfo() {
         return new ApiInfoBuilder()
-                .title("Resource posts API")
+                .title("Resource POST API")
                 .build();
     }
 
