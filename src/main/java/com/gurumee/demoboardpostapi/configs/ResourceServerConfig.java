@@ -21,7 +21,6 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
     @Bean
     @Profile("!test")
     public RemoteTokenServices tokenService() {
-        System.out.println(appProperties);
         RemoteTokenServices tokenService = new RemoteTokenServices();
         tokenService.setCheckTokenEndpointUrl(appProperties.getCheckTokenEndpointUrl());
         tokenService.setClientId(appProperties.getClientId());
