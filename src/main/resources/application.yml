@@ -52,7 +52,7 @@ my-app:
 
 server:
   tomcat:
-    basedir: ~/logs
+    basedir: /home/ec2-user/logs
     accesslog:
       enabled: true
       file-date-format: .yyyy-MM-dd
@@ -61,12 +61,12 @@ server:
 
 logging:
   file:
-    name: ~/logs/application-error.log
+    name: /home/ec2-user/logs/application-error.log
   level:
     root: error
   logback:
     rollingpolicy:
-      file-name-pattern: ~/logs/application-error-%d{yyyy-MM-dd}.%i.log
+      file-name-pattern: /home/ec2-user/logs/application-error-%d{yyyy-MM-dd}.%i.log
       max-file-size: 30MB
 
 spring:
