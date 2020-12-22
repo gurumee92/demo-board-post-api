@@ -61,12 +61,12 @@ server:
 
 logging:
   file:
-    name: ${LOG_DIR}/application-error.log
+    name: ~/logs/application-error.log
   level:
     root: error
   logback:
     rollingpolicy:
-      file-name-pattern: ${LOG_DIR}/logs/application-error-%d{yyyy-MM-dd}.%i.log
+      file-name-pattern: ~/logs/application-error-%d{yyyy-MM-dd}.%i.log
       max-file-size: 30MB
 
 spring:
