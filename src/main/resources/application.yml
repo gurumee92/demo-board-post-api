@@ -52,7 +52,7 @@ my-app:
 
 server:
   tomcat:
-    basedir: ${LOG_DIR}
+    basedir: ~/logs
     accesslog:
       enabled: true
       file-date-format: .yyyy-MM-dd
