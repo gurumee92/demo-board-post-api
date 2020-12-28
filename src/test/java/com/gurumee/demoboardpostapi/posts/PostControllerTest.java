@@ -35,6 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebAppConfiguration
 @ActiveProfiles("test")
 class PostControllerTest {
+    private final static String PATTERN = "yyyy-MM-dd HH:mm:ss";
     @Autowired
     private WebApplicationContext context;
 
@@ -64,9 +65,10 @@ class PostControllerTest {
                 ).forEach(p -> repository.save(p));
         objectMapper = new ObjectMapper();
         objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+
         objectMapper.registerModule(new JavaTimeModule()
-                .addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(DateTimeFormatter.ofPattern("yyyy-mm-dd HH:MM:ss")))
-                .addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer(DateTimeFormatter.ofPattern("yyyy-mm-dd HH:MM:ss"))));
+                .addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(DateTimeFormatter.ofPattern(PATTERN)))
+                .addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer(DateTimeFormatter.ofPattern(PATTERN))));
     }
 
     @Test
@@ -256,8 +258,8 @@ class PostControllerTest {
                 .andExpect(jsonPath("title").value(post.getTitle()))
                 .andExpect(jsonPath("content").value(post.getContent()))
                 .andExpect(jsonPath("owner_name").value(post.getOwnerName()))
-                .andExpect(jsonPath("created_at").value(post.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-mm-dd HH:MM:ss"))))
-                .andExpect(jsonPath("updated_at").value(post.getUpdatedAt().format(DateTimeFormatter.ofPattern("yyyy-mm-dd HH:MM:ss"))))
+                .andExpect(jsonPath("created_at").value(post.getCreatedAt().format(DateTimeFormatter.ofPattern(PATTERN))))
+                .andExpect(jsonPath("updated_at").value(post.getUpdatedAt().format(DateTimeFormatter.ofPattern(PATTERN))))
                 ;
     }
     @Test

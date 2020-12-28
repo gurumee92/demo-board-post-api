@@ -15,11 +15,11 @@ public class PostResponseDto {
     private String content;
     private String owner_name;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-mm-dd HH:MM:ss")
-    @DateTimeFormat(pattern = "yyyy-mm-dd HH:MM:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+//    @DateTimeFormat(pattern = "yyyy-MM-dd kk:mm:ss")
     private LocalDateTime created_at;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-mm-dd HH:MM:ss")
-    @DateTimeFormat(pattern = "yyyy-mm-dd HH:MM:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+//    @DateTimeFormat(pattern = "yyyy-MM-dd kk:mm:ss")
     private LocalDateTime updated_at;
 }
