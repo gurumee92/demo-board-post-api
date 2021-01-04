@@ -8,6 +8,7 @@ import java.util.List;
 
 @Repository
 public interface PostRepository extends JpaRepository<Post, Long> {
-    List<Post> findByOwnerName(@Param("username") String username);
-    List<Post> findByTitleContainingOrContentContaining(String title, String content);
+    List<Post> findAllByOrderByCreatedAtDesc();
+    List<Post> findByOwnerNameOrderByCreatedAtDesc(@Param("username") String username);
+    List<Post> findByTitleContainingOrContentContainingOrderByCreatedAtDesc(String title, String content);
 }

@@ -91,7 +91,7 @@ class PostControllerTest {
         assertEquals(5, dtoList.size());
 
         for (int i=0; i<5; i++) {
-            int no = i+1;
+            int no = 5 - i;
             var dto = dtoList.get(i);
             assertEquals("test title " + no, dto.getTitle());
             assertEquals("test content " + no, dto.getContent());
@@ -120,7 +120,7 @@ class PostControllerTest {
         assertEquals(5, dtoList.size());
 
         for (int i=0; i<5; i++) {
-            int no = i+1;
+            int no = 5 - i;
             var dto = dtoList.get(i);
             assertEquals("test title " + no, dto.getTitle());
             assertEquals("test content " + no, dto.getContent());
@@ -148,7 +148,7 @@ class PostControllerTest {
         List<PostResponseDto> dtoList = objectMapper.readValue(res, objectMapper.getTypeFactory().constructCollectionType(List.class, PostResponseDto.class));
 
         for (int i=0; i<5; i++) {
-            int no = i+1;
+            int no = 5 - i;
             var dto = dtoList.get(i);
             assertEquals("test title " + no, dto.getTitle());
             assertEquals("test content " + no, dto.getContent());
@@ -192,7 +192,7 @@ class PostControllerTest {
         assertEquals(5, dtoList.size());
 
         for (int i=0; i<5; i++) {
-            int no = i+1;
+            int no = 5 - i;
             var dto = dtoList.get(i);
             assertEquals("test title " + no, dto.getTitle());
             assertEquals("test content " + no, dto.getContent());

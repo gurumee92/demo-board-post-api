@@ -32,9 +32,9 @@ public class PostController {
         List<Post> posts;
 
         if (username == null) {
-            posts = postRepository.findAll();
+            posts = postRepository.findAllByOrderByCreatedAtDesc();
         } else {
-            posts = postRepository.findByOwnerName(username);
+            posts = postRepository.findByOwnerNameOrderByCreatedAtDesc(username);
         }
 
         List<PostResponseDto> responseDtoList = posts.stream().map(this::convertResponseDto).collect(Collectors.toList());
@@ -48,9 +48,9 @@ public class PostController {
         List<Post> posts;
 
         if (keyword == null) {
-            posts = postRepository.findAll();
+            posts = postRepository.findAllByOrderByCreatedAtDesc();
         } else {
-            posts = postRepository.findByTitleContainingOrContentContaining(keyword, keyword);
+            posts = postRepository.findByTitleContainingOrContentContainingOrderByCreatedAtDesc(keyword, keyword);
         }
 
         List<PostResponseDto> responseDtoList = posts.stream().map(this::convertResponseDto).collect(Collectors.toList());
